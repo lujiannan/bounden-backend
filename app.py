@@ -45,4 +45,5 @@ api.add_resource(resources_blog.AllBlogs, '/blogs')
 api.add_resource(resources_blog.BlogWithId, '/blogs/<int:id>')
 
 # Use waitress to serve the app's backend apis
+# Basically create a WSGI (Web Server Gateway Interface) here
 serve(app, host='0.0.0.0', port=5000)
