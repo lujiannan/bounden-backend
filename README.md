@@ -42,7 +42,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Render is used for the deployment and hosting of the website
 - Waitress is used for the production server
 
-## Deployment (Render)
+## Deployment ([Render](https://docs.render.com/github))
 - The api website is hosted on a custom domain on Render [Provided URL](https://bounden-api.onrender.com/) (will not work with direct access)
 - Follow the instructions on the Render website to link to the github account
 - Create a new static site, link to the backend repo on github, set name (the prefix of the provided URL), and other details
