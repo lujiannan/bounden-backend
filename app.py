@@ -42,3 +42,8 @@ api.add_resource(resources_user.SecretResource, '/secret')
 api.add_resource(resources_blog.BlogCreate, '/blogs/create')
 api.add_resource(resources_blog.AllBlogs, '/blogs')
 api.add_resource(resources_blog.BlogWithId, '/blogs/<int:id>')
+
+# Use waitress to serve the app's backend apis
+if __name__ == '__main__':
+    from waitress import serve
+    serve(app, host='0.0.0.0', port=5000)

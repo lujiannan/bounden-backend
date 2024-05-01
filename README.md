@@ -29,7 +29,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Go to the server directory
 - Activate the virtual environment ```source venv/bin/activate```
 - Install the required packages ```pip install -r requirements.txt```
-- Initialize the flask database (first time) & run the server ```FLASK_APP=run.py FLASK_DEBUG=1 flask run``` (on port 5000 by default)
+- Initialize the flask database (first time) & run the server ```FLASK_APP=app.py FLASK_DEBUG=1 flask run``` or just ```flask run``` (on port 5000 by default)
 #### Method 2: client-side npm run
 - Go to the client directory
 - Run the server ```npm run server-start``` (on port 5000 by default)
@@ -39,6 +39,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - flask_sqlalchemy is used for the database storage
 - react-auth-kit and jwt_extended are used for user authentication and token refreshing
 - Quill is used for the blog creater/editor
+- Render is used for the deployment and hosting of the website
 
 ## Support
 This is an open source project and everyone is welcome to contribute. Feel free to open an issue, if you have any questions or incase you find a bug. Also if you are impressed/inspired by this project, a little credit will be much appreciated.

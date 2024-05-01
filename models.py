@@ -1,4 +1,4 @@
-from run import db
+from app import db
 from passlib.hash import pbkdf2_sha256 as sha256
 
 # Define the Blog model
