@@ -1,0 +1,140 @@
+from run import db
+from passlib.hash import pbkdf2_sha256 as sha256
+
+# Define the Blog model
+class Blog(db.Model):
+    __tablename__ = 'blogs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(50), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255))
+    created = db.Column(db.String(10), nullable=False)
+    updated = db.Column(db.String(10))
+    # foregin key to the author table (lower case table name 'users')
+    # when you are operating on the blog data, put param author='<user's name>', it would be automatically linked to users table and mapped to the author_id
+    # if you want to know the author's fields (name, email, etc.), you can use the author.field_name
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return f"<Blog {self.title}>"
+    
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    # private to_json method to convert the blog object to a json format
+    @classmethod
+    def __to_json(cls, blog):
+        return {
+            'id': blog.id,
+            'attributes': {
+                'title': blog.title,
+                'description': blog.description,
+                'category': blog.category,
+                'created': blog.created,
+                'updated': blog.updated,
+            },
+            'author': {
+                'id': blog.author.id,
+                'name': blog.author.username,
+                'email': blog.author.email,
+            },
+            # content is not required for blog list (performance optimization)
+            'content': blog.content,
+        }
+
+    @classmethod
+    def return_all(cls):
+        def to_json(blog):
+            return {
+                'id': blog.id,
+                'attributes': {
+                    'title': blog.title,
+                    'description': blog.description,
+                    'category': blog.category,
+                    'created': blog.created,
+                    'updated': blog.updated,
+                },
+                'author': {
+                    'id': blog.author.id,
+                    'name': blog.author.username,
+                    'email': blog.author.email,
+                },
+                # content is not required for blog list (performance optimization)
+            }
+        return {'blogs': list(map(lambda blog: to_json(blog), cls.query.all()))}
+    
+    @classmethod
+    def delete_all(cls):
+        try:
+            num_rows_deleted = db.session.query(cls).delete()
+            db.session.commit()
+            return {'message': f'{num_rows_deleted} row(s) deleted'}
+        except:
+            return {'message': 'Something went wrong'}
+        
+    @classmethod
+    def find_by_id(cls, id):
+        the_blog = cls.query.filter_by(id = id).first()
+        return {'blog': cls.__to_json(the_blog)}
+    
+    @classmethod
+    def delete_by_id(cls, id):
+        try:
+            num_rows_deleted = db.session.query(cls).filter_by(id = id).delete()
+            db.session.commit()
+            return {'message': f'{num_rows_deleted} row(s) deleted'}
+        except:
+            return {'message': 'Something went wrong'}
+    
+# Define the Author model
+class User(db.Model):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    # Define a relationship with the Blog table
+    blogs = db.relationship('Blog', backref='author')
+
+    def __repr__(self):
+        return f"<User {self.email}>"
+    
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def find_by_email(cls, email):
+        return cls.query.filter_by(email = email).first()
+    
+    @classmethod
+    def return_all(cls):
+        def to_json(x):
+            return {
+                'id': x.id,
+                'username': x.username,
+                'email': x.email,
+            }
+
+        return {'users': list(map(lambda x: to_json(x), User.query.all()))}
+    
+    @classmethod
+    def delete_all(cls):
+        try:
+            num_rows_deleted = db.session.query(cls).delete()
+            db.session.commit()
+            return {'message': f'{num_rows_deleted} row(s) deleted'}
+        except:
+            return {'message': 'Something went wrong'}
+        
+    @staticmethod
+    def generate_hash(password):
+        return sha256.hash(password)
+
+    @staticmethod
+    def verify_hash(password, hash):
+        return sha256.verify(password, hash)
