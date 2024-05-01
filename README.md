@@ -40,6 +40,12 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - react-auth-kit and jwt_extended are used for user authentication and token refreshing
 - Quill is used for the blog creater/editor
 - Render is used for the deployment and hosting of the website
+- Waitress is used for the production server
+
+## Deployment (Render)
+- The api website is hosted on a custom domain on Render [Provided URL](https://bounden-api.onrender.com/) (will not work with direct access)
+- Follow the instructions on the Render website to link to the github account
+- Create a new static site, link to the backend repo on github, set name (the prefix of the provided URL), and other details
 
 ## Support
 This is an open source project and everyone is welcome to contribute. Feel free to open an issue, if you have any questions or incase you find a bug. Also if you are impressed/inspired by this project, a little credit will be much appreciated.
