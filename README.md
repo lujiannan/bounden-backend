@@ -7,6 +7,7 @@ Blogs and Services (Webservice - Cross-End Support)
 ## Requirements
 - Ubuntu with sudo privilege (22.04 tested) / Web App deploy services (Render, Heroku, etc.)
 - Python3
+- Sqlite3
 - VS Code or any other code editor
 
 ## Project Start Guide
@@ -22,6 +23,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 ### Server Setup
 - Go to the server directory
 - Install python virtual envrionment base ```sudo apt-get install python3.10-venv```
+- Install Sqlite for debugging database ```sudo apt install sqlite```
 - Check for upgrades ```sudo apt upgrade```
 - Create the python virtual environment ```python3 -m venv venv```
 - Activate the virtual environment ```source venv/bin/activate```
@@ -49,11 +51,11 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Enable the ufw (firewall) ```sudo ufw enable```
 - Allow access to port 5000 ```sudo ufw allow 5000```
 ### Method 1: Gunicorn only
-- Use gunicorn to serve the flask app to port 5000 ```gunicorn --bind 0.0.0.0:5000 wsgi:app```
+- Use gunicorn to serve the flask app to port 5000 ```gunicorn --bind 0.0.0.0:5000 -w 4 wsgi:app```
 - Check if service deployed to the port 5000 ```lsof -i :5000```
 - Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection
-- Access the api through the browser with ```<cloud-server-ip>:5000```
-### Method 2: Gunicorn with systemd
+- Access the api through the browser with ```http://<cloud-server-ip>:5000```
+### Method 2: Gunicorn managed by Systemd
 - [use systemd to auto the process](https://docs.gunicorn.org/en/stable/deploy.html#systemd) / [more reference 1st](https://blog.miguelgrinberg.com/post/how-to-deploy-a-react--flask-project) / [more reference 2nd](https://blog.miguelgrinberg.com/post/running-a-flask-application-as-a-service-with-systemd)
 - Setup the service ```sudo vi /etc/systemd/system/bounden.service```
 ```
@@ -63,6 +65,7 @@ After=network.target
 
 [Service]
 User=<user>
+Group=<user>
 WorkingDirectory=/home/<user>/<project-directory-name>
 Environment="PATH=/home/<user>/<project-directory-name>/venv/bin"
 ExecStart=/home/<user>/<project-directory-name>/venv/bin/gunicorn -b 0.0.0.0:5000 -w 4  wsgi:app
