@@ -34,7 +34,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - react-auth-kit and jwt_extended are used for user authentication and token refreshing
 - Quill is used for the blog creater/editor
 - Render is used for the deployment and hosting of the website
-- Waitress is used for the production server
+- Gunicorn is used for the production server
 
 ## Deployment ([Render](https://docs.render.com/github))
 - ATTENTION: Free - only for test purpose (if you want to push database back to github, fee applies)
@@ -44,11 +44,39 @@ git clone https://github.com/lujiannan/bounden-backend.git
 
 ## Deployment ([Nginx on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-22-04))
 - ATTENTION: only apply to those Ubuntu with sudo privileges
-- [Install nginx](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04) on your Ubuntu machine
-- Config a domain name to point to your server - an A record with your_domain pointing to your server’s public IP address, and an A record with www.your_domain pointing to your server’s public IP address.
+- [Install nginx](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04) on the Ubuntu machine
+- Config a domain name to point to the server - an A record with the_domain pointing to the server’s public IP address, and an A record with www.the_domain pointing to the server’s public IP address.
 - Allow access to port 5000 ```sudo ufw allow 5000```
-- Test your Flask app ```python <your_app>.py```
+### Method 1: Gunicorn only
+- Use gunicorn to serve the flask app to port 5000 ```gunicorn --bind 0.0.0.0:5000 wsgi:app```
 - Check if service deployed to the port 5000 ```lsof -i :5000```
+- Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection
+- Access the api through the browser with ```<cloud-server-ip>:5000```
+### Method 2: Gunicorn with systemd
+- [use systemd to auto the process](https://docs.gunicorn.org/en/stable/deploy.html#systemd) [more reference](https://blog.miguelgrinberg.com/post/running-a-flask-application-as-a-service-with-systemd)
+- Setup the service ```sudo vi /etc/systemd/system/bounden.service```
+```
+[Unit]
+Description=Gunicorn instance to serve <project-name>
+After=network.target
+
+[Service]
+User=jonas
+WorkingDirectory=/home/jonas/<project-name>
+Environment="PATH=/home/jonas/<project-name>/venv/bin"
+ExecStart=/home/jonas/<project-name>/venv/bin/gunicorn -b 0.0.0.0:5000 -w 4  wsgi:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+- Every time you change the content of ```<project-name>.service```, run ```sudo systemctl daemon-reload```
+- Start the service ```sudo systemctl start <project-name>``` or restart the service ```sudo systemctl restart <project-name>```
+- Check the status of the service ```sudo systemctl status bounden```
+- Check the log of systemd ```journalctl -u bounden```
+- Check if service deployed to the port 5000 ```lsof -i :5000```
+- Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection and do ```sudo ufw allow 5000``` on the shell of the server
+- Access the api through the browser with ```<cloud-server-ip>:5000```
 
 
 ## Support

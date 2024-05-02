@@ -4,7 +4,6 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from waitress import serve
 
 app = Flask(__name__)
 api = Api(app)
@@ -32,7 +31,7 @@ def create_tables():
 jwt = JWTManager(app)
 
 
-import views, models, resources_user, resources_blog
+import views, resources_user, resources_blog
 
 api.add_resource(resources_user.UserSignUp, '/signup')
 api.add_resource(resources_user.UserSignIn, '/signin')
@@ -43,7 +42,3 @@ api.add_resource(resources_user.SecretResource, '/secret')
 api.add_resource(resources_blog.BlogCreate, '/blogs/create')
 api.add_resource(resources_blog.AllBlogs, '/blogs')
 api.add_resource(resources_blog.BlogWithId, '/blogs/<int:id>')
-
-# Use waitress to serve the app's backend apis
-# Basically create a WSGI (Web Server Gateway Interface) here
-serve(app, host='0.0.0.0', port=5000)
