@@ -42,7 +42,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Follow the instructions on the Render website to link to the github account
 - Create a new static site, link to the backend repo on github, set name (the prefix of the provided URL), and other details
 
-## Deployment ([Nginx on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-22-04))
+## Deployment ([Nginx on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04))
 - ATTENTION: only apply to those Ubuntu with sudo privileges
 - [Install nginx](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04) on the Ubuntu machine
 - Config a domain name to point to the server - an A record with the_domain pointing to the server’s public IP address, and an A record with www.the_domain pointing to the server’s public IP address.
@@ -53,7 +53,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection
 - Access the api through the browser with ```<cloud-server-ip>:5000```
 ### Method 2: Gunicorn with systemd
-- [use systemd to auto the process](https://docs.gunicorn.org/en/stable/deploy.html#systemd) / [more reference](https://blog.miguelgrinberg.com/post/running-a-flask-application-as-a-service-with-systemd)
+- [use systemd to auto the process](https://docs.gunicorn.org/en/stable/deploy.html#systemd) / [more reference 1st](https://blog.miguelgrinberg.com/post/how-to-deploy-a-react--flask-project) / [more reference 2nd](https://blog.miguelgrinberg.com/post/running-a-flask-application-as-a-service-with-systemd)
 - Setup the service ```sudo vi /etc/systemd/system/bounden.service```
 ```
 [Unit]
@@ -77,6 +77,8 @@ WantedBy=multi-user.target
 - Check if service deployed to the port 5000 ```lsof -i :5000```
 - Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection and do ```sudo ufw allow 5000``` on the shell of the server
 - Access the api through the browser with ```<cloud-server-ip>:5000```
+### Continue on Securing the Server
+
 
 
 ## Support
