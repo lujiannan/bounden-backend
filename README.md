@@ -57,14 +57,14 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Setup the service ```sudo vi /etc/systemd/system/bounden.service```
 ```
 [Unit]
-Description=Gunicorn instance to serve <project-name>
+Description=Gunicorn instance to serve <project-directory-name>
 After=network.target
 
 [Service]
 User=jonas
-WorkingDirectory=/home/jonas/<project-name>
-Environment="PATH=/home/jonas/<project-name>/venv/bin"
-ExecStart=/home/jonas/<project-name>/venv/bin/gunicorn -b 0.0.0.0:5000 -w 4  wsgi:app
+WorkingDirectory=/home/jonas/<project-directory-name>
+Environment="PATH=/home/jonas/<project-directory-name>/venv/bin"
+ExecStart=/home/jonas/<project-directory-name>/venv/bin/gunicorn -b 0.0.0.0:5000 -w 4  wsgi:app
 Restart=always
 
 [Install]
