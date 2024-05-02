@@ -2,7 +2,7 @@
 Blogs and Services (Webservice - Cross-End Support)
 
 ## Examples
-- [Blog (Deployed onRender)](https://bounden.onrender.com/)
+- [Blog (Deployed on Render)](https://bounden.onrender.com/)
 
 ## Requirements
 - Ubuntu with sudo privilege (22.04 tested) / Web App deploy services (Render, Heroku, etc.)
@@ -53,7 +53,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection
 - Access the api through the browser with ```<cloud-server-ip>:5000```
 ### Method 2: Gunicorn with systemd
-- [use systemd to auto the process](https://docs.gunicorn.org/en/stable/deploy.html#systemd) [more reference](https://blog.miguelgrinberg.com/post/running-a-flask-application-as-a-service-with-systemd)
+- [use systemd to auto the process](https://docs.gunicorn.org/en/stable/deploy.html#systemd) / [more reference](https://blog.miguelgrinberg.com/post/running-a-flask-application-as-a-service-with-systemd)
 - Setup the service ```sudo vi /etc/systemd/system/bounden.service```
 ```
 [Unit]
