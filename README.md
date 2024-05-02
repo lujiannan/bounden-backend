@@ -80,7 +80,7 @@ WantedBy=multi-user.target
 - Check the log of systemd ```journalctl -u bounden```
 - Check if service deployed to the port 5000 ```lsof -i :5000```
 - Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection and do ```sudo ufw allow 5000``` on the shell of the server
-- Access the api through the browser with ```<cloud-server-ip>:5000```
+- Access the api through the browser with ```http://<cloud-server-ip>:5000```
 ### Continue on [configuring Nginx to proxy requests](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04#step-5-configuring-nginx-to-proxy-requests)
 - Config Nginx site ```sudo vi /etc/nginx/sites-available/<project-name>```
 ```
