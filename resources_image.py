@@ -48,10 +48,26 @@ class ImageUpload(Resource):
             EnableMD5=False
         )
         if response['ETag'] != None:
-            return {
-                'message': 'Image uploaded successfully',
-                'url': 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
-            }
+            author_obj = User.find_by_email(data.user_email)
+            if not author_obj:
+                return {
+                    'message': 'Author not found'
+                }
+            
+            new_image = Image(
+                name = data.name,
+                user = author_obj,
+                url = 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
+            )
+            # save the new blog object to the database
+            try:
+                new_image.save_to_db()
+                return {
+                    'message': 'Image uploaded successfully',
+                    'url': 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
+                }
+            except:
+                return {'message': 'Something went wrong'}, 500
         else:
             return {
                 'message': 'Image upload failed'

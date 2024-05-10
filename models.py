@@ -174,6 +174,10 @@ class Image(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     image_url = db.Column(db.String(255), nullable=False)
 
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
     # private to_json method to convert the blog object to a json format
     @classmethod
     def __to_json(cls, image):
