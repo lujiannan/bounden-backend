@@ -31,14 +31,16 @@ def create_tables():
 jwt = JWTManager(app)
 
 
-import views, resources_user, resources_blog
+import views, resources_user, resources_blog, resources_image
 
 api.add_resource(resources_user.UserSignUp, '/signup')
 api.add_resource(resources_user.UserSignIn, '/signin')
 api.add_resource(resources_user.TokenRefresh, '/token/refresh')
 api.add_resource(resources_user.AllUsers, '/users')
-api.add_resource(resources_user.SecretResource, '/secret')
+api.add_resource(resources_user.UserAllBlogs, '/users/<email>/blogs')
 
 api.add_resource(resources_blog.BlogCreate, '/blogs/create')
 api.add_resource(resources_blog.AllBlogs, '/blogs')
 api.add_resource(resources_blog.BlogWithId, '/blogs/<int:id>')
+
+api.add_resource(resources_image.ImageUpload, '/images/upload')

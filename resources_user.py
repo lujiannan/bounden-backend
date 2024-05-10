@@ -88,13 +88,9 @@ class AllUsers(Resource):
     # comment this when using in production
     def delete(self):
         return User.delete_all()
-      
 
-# To access this resource you need to add a header to your request in format Authorization: Bearer <JWT>
-class SecretResource(Resource):
+    
+class UserAllBlogs(Resource):
     @jwt_required()
-    def get(self):
-        return {
-            'answer': 42
-        }
-      
+    def get(self, email):
+        return User.find_by_email(email).return_all_blogs()

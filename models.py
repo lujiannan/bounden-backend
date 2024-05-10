@@ -16,6 +16,8 @@ class Blog(db.Model):
     # if you want to know the author's fields (name, email, etc.), you can use the author.field_name
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    # Define a relationship with the Image table and create a new column images as backref
+    images = db.relationship('Image', backref='blog')
 
     def __repr__(self):
         return f"<Blog {self.title}>"
@@ -47,6 +49,7 @@ class Blog(db.Model):
 
     @classmethod
     def return_all(cls):
+        # return all attributes of the blogs except content (performance optimization)
         def to_json(blog):
             return {
                 'id': blog.id,
@@ -97,8 +100,9 @@ class User(db.Model):
     username = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    # Define a relationship with the Blog table
+    # Define a relationship with the Blog table and create a new column author as backref
     blogs = db.relationship('Blog', backref='author')
+    images = db.relationship('Image', backref='user')
 
     def __repr__(self):
         return f"<User {self.email}>"
@@ -130,6 +134,28 @@ class User(db.Model):
             return {'message': f'{num_rows_deleted} row(s) deleted'}
         except:
             return {'message': 'Something went wrong'}
+    
+    # return all blogs of a specific user
+    def return_all_blogs(self):
+        # return all attributes of the blogs except content (performance optimization)
+        def to_json(blog):
+            return {
+                'id': blog.id,
+                'attributes': {
+                    'title': blog.title,
+                    'description': blog.description,
+                    'category': blog.category,
+                    'created': blog.created,
+                    'updated': blog.updated,
+                },
+                'author': {
+                    'id': blog.author.id,
+                    'name': blog.author.username,
+                    'email': blog.author.email,
+                },
+                # content is not required for blog list (performance optimization)
+            }
+        return {'blogs': list(map(lambda blog: to_json(blog), self.blogs))}
         
     @staticmethod
     def generate_hash(password):
@@ -138,3 +164,34 @@ class User(db.Model):
     @staticmethod
     def verify_hash(password, hash):
         return sha256.verify(password, hash)
+    
+class Image(db.Model):
+    __tablename__ = 'images'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    image_url = db.Column(db.String(255), nullable=False)
+
+    # private to_json method to convert the blog object to a json format
+    @classmethod
+    def __to_json(cls, image):
+        return {
+            'id': image.id,
+            'name': image.name,
+            'blog': {
+                'id': image.blog.id,
+                'title': image.blog.title,
+            },
+            'user': {
+                'id': image.user.id,
+                'username': image.user.username,
+                'email': image.user.email,
+            },
+            'image_url': image.image_url,
+        }
+    
+    @classmethod
+    def return_all(cls):
+        return {'images': list(map(lambda image: cls.__to_json(image), cls.query.all()))}

@@ -8,6 +8,7 @@ Blogs and Services (Webservice - Cross-End Support)
 - Ubuntu with sudo privilege (22.04 tested) / Web App deploy services (Render, Heroku, etc.)
 - Python3
 - Sqlite3
+- COS storage server (腾讯云COS is used in this project)
 - VS Code or any other code editor
 
 ## Project Start Guide
