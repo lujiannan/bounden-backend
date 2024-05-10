@@ -29,7 +29,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Create the python virtual environment ```python3 -m venv venv```
 - Activate the virtual environment ```source venv/bin/activate```
 - Install the required packages ```pip install -r requirements.txt```
-- Initialize the flask database (first time) & run the server ```FLASK_APP=app.py FLASK_DEBUG=1 flask run``` or just ```flask run``` (on port 5000 by default)
+- (Dev) Initialize the flask database (first time) & run the server ```FLASK_APP=app.py FLASK_DEBUG=1 flask run``` or just ```flask run``` (on port 5000 by default)
 
 ## Dependencies
 - The whole website is built using React as frontend and Flask + Python as backend
@@ -57,6 +57,7 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Check if service deployed to the port 5000 ```lsof -i :5000```
 - Check if port 5000 is allowed (Security Group) on the cloud ubuntu server for TCP connection
 - Access the api through the browser with ```http://<cloud-server-ip>:5000```
+- (tips) kill gunicorn ```pkill gunicorn```
 ### Method 2: Gunicorn managed by Systemd
 - [use systemd to auto the process](https://docs.gunicorn.org/en/stable/deploy.html#systemd) / [more reference 1st](https://blog.miguelgrinberg.com/post/how-to-deploy-a-react--flask-project) / [more reference 2nd](https://blog.miguelgrinberg.com/post/running-a-flask-application-as-a-service-with-systemd)
 - Setup the service ```sudo vi /etc/systemd/system/bounden.service```
