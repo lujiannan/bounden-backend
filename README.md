@@ -43,7 +43,8 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - ATTENTION: Free - only for test purpose (if you want to push database back to github, fee applies)
 - The api website is hosted on a custom domain on Render [Provided URL](https://bounden-api.onrender.com/) (will not work with direct access)
 - Follow the instructions on the Render website to link to the github account
-- Create a new static site, link to the backend repo on github, set name (the prefix of the provided URL), and other details
+- Create a new site, link to the backend repo on github, set name (the prefix of the provided URL), and other details
+- set environment variables on the site (based on the .env file)
 
 ## Deployment - [Nginx on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04)
 - ATTENTION: only apply to those Ubuntu with sudo privileges
