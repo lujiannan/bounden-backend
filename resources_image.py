@@ -12,6 +12,11 @@ import os
 import logging
 from dotenv import load_dotenv
 
+# for image processing
+from io import BytesIO
+import numpy as np
+import cv2
+
 # Load variables from .env file
 load_dotenv()
 
@@ -36,13 +41,47 @@ parser_upload.add_argument('user_email', type=str, help = 'This field cannot be 
 parser_upload.add_argument('name', type=str, help = 'This field cannot be blank', required = True, location = 'form')
 parser_upload.add_argument('file', type=FileStorage, help = 'This field cannot be blank', required = True, location = 'files')
 
+# adjust image size to 720p if it's larger than 720p
+def adjustImageSize(file_bin):
+    # Convert byte data to numpy array
+    nparr = np.frombuffer(file_bin, np.uint8)
+    
+    # Decode image
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    
+    # Get original image dimensions
+    height, width = img.shape[:2]
+
+    if height <= 760:
+        return file_bin
+    
+    # Calculate aspect ratio
+    aspect_ratio = width / height
+    
+    # Define target width and height for 720p
+    target_height = 760
+    target_width = int(target_height * aspect_ratio)
+    
+    # Resize image while maintaining aspect ratio
+    resized_img = cv2.resize(img, (target_width, target_height))
+    
+    # Encode resized image to byte data
+    _, buffer = cv2.imencode('.jpg', resized_img)
+    
+    # Convert byte buffer to bytes
+    resized_bytes = BytesIO(buffer).read()
+    
+    return resized_bytes
+
+
 class ImageUpload(Resource):
     @jwt_required()
     def post(self):
         data = parser_upload.parse_args()
+        # print(adjustImageSize(data.file.stream.read()))
         response = client.put_object(
             Bucket=bucket,
-            Body=data.file,
+            Body=adjustImageSize(data.file.stream.read()),
             Key='blog-images/' + data.user_email + '/' + data.name,
             StorageClass='STANDARD',
             EnableMD5=False
@@ -57,7 +96,7 @@ class ImageUpload(Resource):
             new_image = Image(
                 name = data.name,
                 user = author_obj,
-                url = 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
+                image_url = 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
             )
             # save the new blog object to the database
             try:
