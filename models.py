@@ -16,8 +16,6 @@ class Blog(db.Model):
     # if you want to know the author's fields (name, email, etc.), you can use the author.field_name
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    # Define a relationship with the Image table and create a new column images as backref
-    images = db.relationship('Image', backref='blog')
 
     def __repr__(self):
         return f"<Blog {self.title}>"
@@ -170,7 +168,6 @@ class Image(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     image_url = db.Column(db.String(255), nullable=False)
 
@@ -184,10 +181,6 @@ class Image(db.Model):
         return {
             'id': image.id,
             'name': image.name,
-            'blog': {
-                'id': image.blog.id,
-                'title': image.blog.title,
-            },
             'user': {
                 'id': image.user.id,
                 'username': image.user.username,
