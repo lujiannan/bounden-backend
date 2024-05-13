@@ -77,9 +77,12 @@ class Blog(db.Model):
             return {'message': 'Something went wrong'}
         
     @classmethod
-    def find_by_id(cls, id):
+    def find_by_id(cls, id, requireJson=False):
         the_blog = cls.query.filter_by(id = id).first()
-        return {'blog': cls.__to_json(the_blog)}
+        if requireJson:
+            return {'blog': cls.__to_json(the_blog)}
+        else:
+            return the_blog
     
     @classmethod
     def delete_by_id(cls, id):

@@ -40,6 +40,7 @@ api.add_resource(resources_user.AllUsers, '/users')
 api.add_resource(resources_user.UserAllBlogs, '/users/<email>/blogs')
 
 api.add_resource(resources_blog.BlogCreate, '/blogs/create')
+api.add_resource(resources_blog.BlogUpdate, '/blogs/edit/<int:id>')
 api.add_resource(resources_blog.AllBlogs, '/blogs')
 api.add_resource(resources_blog.BlogWithId, '/blogs/<int:id>')
 

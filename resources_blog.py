@@ -38,6 +38,29 @@ class BlogCreate(Resource):
             }
         except:
             return {'message': 'Something went wrong'}, 500
+        
+class BlogUpdate(Resource):
+    @jwt_required()
+    def post(self, id):
+        data = parser_create.parse_args()
+        blog_obj = Blog.find_by_id(id)
+
+        if blog_obj:
+            blog_obj.category = data['category']
+            blog_obj.title = data['title']
+            blog_obj.description = data['description']
+            blog_obj.updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            blog_obj.content = data['content']
+
+            try:
+                blog_obj.save_to_db()
+                return {
+                    'message': 'Blog {} updated successfully'.format( data['title']),
+                }
+            except:
+                return {'message': 'Something went wrong'}, 500
+        else:
+            return {'message': 'Blog not found'}, 404
     
 class AllBlogs(Resource):
     def get(self):
@@ -49,7 +72,7 @@ class AllBlogs(Resource):
     
 class BlogWithId(Resource):
     def get(self, id):
-        return Blog.find_by_id(id)
+        return Blog.find_by_id(id, requireJson=True)
 
     # comment this when using in production
     def delete(self, id):
