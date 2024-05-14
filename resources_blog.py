@@ -74,6 +74,6 @@ class BlogWithId(Resource):
     def get(self, id):
         return Blog.find_by_id(id, requireJson=True)
 
-    # comment this when using in production
+    @jwt_required()
     def delete(self, id):
         return Blog.delete_by_id(id)
