@@ -22,7 +22,7 @@ class UserVerifyEmail(Resource):
     def get(self, email):
         user = User.find_by_email(email)
         if user:
-            user.verified = False
+            user.verified = True
         try:
             # save user to database
             user.save_to_db()
@@ -38,34 +38,56 @@ class UserSignUp(Resource):
         elif len(data['password']) < 4:
             return {'message': 'Password must be at least 4 characters long'}
         # check if user already exists
-        if User.find_by_email(data['email']):
+        user = User.find_by_email(data['email'])
+        if user and user.verified:
             return {'message': 'Email already exists'. format(data['email'])}
         
-        message = Message(subject = 'Email Verification Link - 邮箱验证链接', recipients=[data['email']])
-        message.body = 'Please verify your email by clicking on the link - 请点击链接验证您的邮箱: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
-        mail.send(message)
-        
-        # create a new user object if not already exists
-        new_user = User(
-            username = data['username'],
-            email = data['email'],
-            password = User.generate_hash(data['password']),
-        )
+        if user:
+            # update user's password if already exists
+            print(data['password'])
+            user.username = data['username']
+            user.password = User.generate_hash(data['password'])
 
-        try:
-            # save user to database
-            new_user.save_to_db()
-            access_token = create_access_token(identity = data['email'])
-            refresh_token = create_refresh_token(identity = data['email'])
-            return {
-                'message': 'User with email {} was created'.format( data['email']),
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'username': new_user.username,
-                'email': new_user.email,
-            }
-        except:
-            return {'message': 'Something went wrong'}, 500
+            try:
+                # save user to database
+                user.save_to_db()
+                # send verification email
+                message = Message(subject = 'Email Verification Link - 邮箱验证链接', recipients=[data['email']])
+                message.body = 'Please verify your email by clicking on the link - 请点击链接验证您的邮箱: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
+                mail.send(message)
+                return {
+                    'message': 'User with email {} was created'.format( data['email']),
+                    'username': user.username,
+                    'email': user.email,
+                }
+            except:
+                return {'message': 'Something went wrong'}, 500
+        else:
+            # create a new user object if not already exists and verified
+            new_user = User(
+                username = data['username'],
+                email = data['email'],
+                password = User.generate_hash(data['password']),
+            )
+
+            try:
+                # save user to database
+                new_user.save_to_db()
+                # send verification email
+                message = Message(subject = 'Email Verification Link - 邮箱验证链接', recipients=[data['email']])
+                message.body = 'Please verify your email by clicking on the link - 请点击链接验证您的邮箱: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
+                mail.send(message)
+                # access_token = create_access_token(identity = data['email'])
+                # refresh_token = create_refresh_token(identity = data['email'])
+                return {
+                    'message': 'User with email {} was created'.format( data['email']),
+                    # 'access_token': access_token,
+                    # 'refresh_token': refresh_token,
+                    'username': new_user.username,
+                    'email': new_user.email,
+                }
+            except:
+                return {'message': 'Something went wrong'}, 500
 
 
 class UserSignIn(Resource):
