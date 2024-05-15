@@ -2,6 +2,9 @@ from models import User
 from flask_restful import Resource, reqparse
 # Access token we need to access protected routes. Refresh token we need to reissue access token when it will expire.
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt)
+from flask_mail import Message
+from app import mail
+import os
 
 # add parsing of incoming data inside the POST request
 # required fields are username, email and password
@@ -14,6 +17,19 @@ parser_signin = reqparse.RequestParser()
 parser_signin.add_argument('email', help = 'This field cannot be blank', required = True)
 parser_signin.add_argument('password', help = 'This field cannot be blank', required = True)
 
+# User click the verification link sent to their email, this endpoint will verify the email
+class UserVerifyEmail(Resource):
+    def get(self, email):
+        user = User.find_by_email(email)
+        if user:
+            user.verified = False
+        try:
+            # save user to database
+            user.save_to_db()
+            return {'message': 'Email verified successfully'}
+        except:
+            return {'message': 'Something went wrong'}, 500
+
 class UserSignUp(Resource):
     def post(self):
         data = parser_signup.parse_args()
@@ -24,6 +40,10 @@ class UserSignUp(Resource):
         # check if user already exists
         if User.find_by_email(data['email']):
             return {'message': 'Email already exists'. format(data['email'])}
+        
+        message = Message(subject = 'Email Verification Link 邮箱验证链接', recipients=[data['email']])
+        message.body = 'Please verify your email by clicking on the link: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
+        mail.send(message)
         
         # create a new user object if not already exists
         new_user = User(
@@ -58,19 +78,21 @@ class UserSignIn(Resource):
             return {'message': 'Email does not exist'}
         
         # check if password is correct
-        if User.verify_hash(data['password'], current_user.password):
-            access_token = create_access_token(identity = data['email'])
-            refresh_token = create_refresh_token(identity = data['email'])
-            return {
-                'message': 'Logged in as {}'.format(current_user.username),
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'username': current_user.username,
-                'email': current_user.email,
-            }
-        else:
+        if not User.verify_hash(data['password'], current_user.password):
             return {'message': 'Password is incorrect'}
+        
+        if not current_user.verified:
+            return {'message': 'Email is not verified'}
       
+        access_token = create_access_token(identity = data['email'])
+        refresh_token = create_refresh_token(identity = data['email'])
+        return {
+            'message': 'Logged in as {}'.format(current_user.username),
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'username': current_user.username,
+            'email': current_user.email,
+        }
       
 # refresh token endpoint to get a new access token
 class TokenRefresh(Resource):

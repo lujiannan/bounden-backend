@@ -101,6 +101,7 @@ class User(db.Model):
     username = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
+    verified = db.Column(db.Boolean, default=False)
     # Define a relationship with the Blog table and create a new column author as backref
     blogs = db.relationship('Blog', backref='author')
     images = db.relationship('Image', backref='user')

@@ -1,5 +1,7 @@
 import datetime
+import os
 from flask import Flask
+from flask_mail import Mail
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
@@ -10,18 +12,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-api = Api(app)
-CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:3000", "https://*.bounden.cn"]}})
 
+# db config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'jonaswebsecretkey'
-
-app.config['JWT_SECRET_KEY'] = 'jonaswebjwtsecretkey'
+# jwt config
+app.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=1440)  # 1 day
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(minutes=43200)  # 30 days
+# mail config
+app.config['MAIL_SERVER'] = os.environ['MAIL_SERVER']
+app.config['MAIL_PORT'] = os.environ['MAIL_PORT']
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
+app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
+app.config['MAIL_DEFAULT_SENDER'] = ('Bounden', os.environ['MAIL_USERNAME'])
 
+api = Api(app)
+mail = Mail(app)
 db = SQLAlchemy(app)
+CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:3000", "https://*.bounden.cn"]}})
 
 @app.before_request
 def create_tables():
@@ -38,6 +49,7 @@ jwt = JWTManager(app)
 import views, resources_user, resources_blog, resources_image
 
 api.add_resource(resources_user.UserSignUp, '/signup')
+api.add_resource(resources_user.UserVerifyEmail, '/verify_email/<email>')
 api.add_resource(resources_user.UserSignIn, '/signin')
 api.add_resource(resources_user.TokenRefresh, '/token/refresh')
 api.add_resource(resources_user.AllUsers, '/users')
