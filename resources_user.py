@@ -41,7 +41,7 @@ class UserSignUp(Resource):
         if User.find_by_email(data['email']):
             return {'message': 'Email already exists'. format(data['email'])}
         
-        message = Message(subject = 'Email Verification Link 邮箱验证链接', recipients=[data['email']])
+        message = Message(subject = 'Email Verification Link - 邮箱验证链接', recipients=[data['email']])
         message.body = 'Please verify your email by clicking on the link: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
         mail.send(message)
         
