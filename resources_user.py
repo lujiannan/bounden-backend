@@ -42,7 +42,7 @@ class UserSignUp(Resource):
             return {'message': 'Email already exists'. format(data['email'])}
         
         message = Message(subject = 'Email Verification Link - 邮箱验证链接', recipients=[data['email']])
-        message.body = 'Please verify your email by clicking on the link: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
+        message.body = 'Please verify your email by clicking on the link - 请点击链接验证您的邮箱: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
         mail.send(message)
         
         # create a new user object if not already exists
