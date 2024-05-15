@@ -5,6 +5,8 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 from flask_mail import Message
 from app import mail
 import os
+# for email validation
+import re
 
 # add parsing of incoming data inside the POST request
 # required fields are username, email and password
@@ -35,6 +37,8 @@ class UserSignUp(Resource):
         data = parser_signup.parse_args()
         if len(data['username']) < 2:
             return {'message': 'Username must be at least 2 characters long'}
+        elif not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', data['email']):
+            return {'message': 'Please enter a valid email'}
         elif len(data['password']) < 4:
             return {'message': 'Password must be at least 4 characters long'}
         # check if user already exists
