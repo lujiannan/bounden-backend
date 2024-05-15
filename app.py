@@ -4,6 +4,10 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 api = Api(app)
