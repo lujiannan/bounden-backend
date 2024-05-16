@@ -1,4 +1,5 @@
 from models import User
+from flask import render_template, make_response
 from flask_restful import Resource, reqparse
 # Access token we need to access protected routes. Refresh token we need to reissue access token when it will expire.
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt)
@@ -28,7 +29,11 @@ class UserVerifyEmail(Resource):
         try:
             # save user to database
             user.save_to_db()
-            return {'message': 'Email verified successfully'}
+            html_content = render_template('verify_email.html', email=email)
+            # Create a response object with the correct Content-Type
+            response = make_response(html_content)
+            response.headers['Content-Type'] = 'text/html'
+            return response
         except:
             return {'message': 'Something went wrong'}, 500
 
