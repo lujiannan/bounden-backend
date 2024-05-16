@@ -29,6 +29,7 @@ class UserVerifyEmail(Resource):
         try:
             # save user to database
             user.save_to_db()
+            # render verification email template while user click the link in their email
             html_content = render_template('verify_email.html', email=email)
             # Create a response object with the correct Content-Type
             response = make_response(html_content)
