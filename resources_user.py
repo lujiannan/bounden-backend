@@ -4,8 +4,8 @@ from flask_restful import Resource, reqparse
 # Access token we need to access protected routes. Refresh token we need to reissue access token when it will expire.
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt)
 from flask_mail import Message
-from app import mail
-import os
+from itsdangerous import SignatureExpired, BadTimeSignature
+from app import mail, serializer, api
 # for email validation
 import re
 
@@ -22,7 +22,14 @@ parser_signin.add_argument('password', help = 'This field cannot be blank', requ
 
 # User click the verification link sent to their email, this endpoint will verify the email
 class UserVerifyEmail(Resource):
-    def get(self, email):
+    def get(self, token):
+        try:
+            email = serializer.loads(token, salt='email-confirm-salt', max_age=3600)  # Token valid for 1 hour
+        except SignatureExpired:
+            return {'message': 'The token has expired!'}, 400
+        except BadTimeSignature:
+            return {'message': 'The token is invalid!'}, 400
+        
         user = User.find_by_email(email)
         if user:
             user.verified = True
@@ -30,7 +37,7 @@ class UserVerifyEmail(Resource):
             # save user to database
             user.save_to_db()
             # render verification email template while user click the link in their email
-            html_content = render_template('verify_email.html', email=email)
+            html_content = render_template('email_verified.html', email=email)
             # Create a response object with the correct Content-Type
             response = make_response(html_content)
             response.headers['Content-Type'] = 'text/html'
@@ -52,21 +59,23 @@ class UserSignUp(Resource):
         if user and user.verified:
             return {'message': 'Email already exists'. format(data['email'])}
         
+        # create a verification token for the user
+        token = serializer.dumps(data['email'], salt='email-confirm-salt')
+        # create a new user object and save it to the database
         if user:
             # update user's password if already exists
-            print(data['password'])
             user.username = data['username']
             user.password = User.generate_hash(data['password'])
-
             try:
                 # save user to database
                 user.save_to_db()
                 # send verification email
-                message = Message(subject = 'Email Verification Link - 邮箱验证链接', recipients=[data['email']])
-                message.body = 'Please verify your email by clicking on the link - 请点击链接验证您的邮箱: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
+                verification_link = api.url_for(UserVerifyEmail, token=token, _external=True)
+                message = Message(subject = 'Email Verification - 邮箱验证链接', recipients=[data['email']])
+                message.html = render_template('email_verification_request.html', verification_link=verification_link)
                 mail.send(message)
                 return {
-                    'message': 'User with email {} was created'.format( data['email']),
+                    'message': 'Verification email sent',
                     'username': user.username,
                     'email': user.email,
                 }
@@ -84,15 +93,12 @@ class UserSignUp(Resource):
                 # save user to database
                 new_user.save_to_db()
                 # send verification email
-                message = Message(subject = 'Email Verification Link - 邮箱验证链接', recipients=[data['email']])
-                message.body = 'Please verify your email by clicking on the link - 请点击链接验证您的邮箱: \n {}/verify_email/{}'.format(os.environ['BACKEND_URL'], data['email'])
+                verification_link = url_for('verify_email', token=token, _external=True)
+                message = Message(subject = 'Email Verification - 邮箱验证链接', recipients=[data['email']])
+                message.html = render_template('email_verification_request.html', verification_link=verification_link)
                 mail.send(message)
-                # access_token = create_access_token(identity = data['email'])
-                # refresh_token = create_refresh_token(identity = data['email'])
                 return {
-                    'message': 'User with email {} was created'.format( data['email']),
-                    # 'access_token': access_token,
-                    # 'refresh_token': refresh_token,
+                    'message': 'Verification email sent',
                     'username': new_user.username,
                     'email': new_user.email,
                 }
