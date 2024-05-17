@@ -184,7 +184,7 @@ class UserSignUp(Resource):
             return {'message': 'Username must be at least 2 characters long'}
         elif not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', data['email']):
             return {'message': 'Please enter a valid email'}
-        elif len(data['password']) < 8 or not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$', data['password']):
+        elif not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$', data['password']):
             return {'message': 'Password must be 8+ length with a mix of letters and numbers'}
         # check if user already exists
         user = User.find_by_email(data['email'])
