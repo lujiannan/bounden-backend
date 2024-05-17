@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Verification</title>
+    <title>{{ title }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,6 +26,7 @@
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
+            color: #dd5746;
         }
 
         p {
@@ -53,9 +54,8 @@
 
 <body>
     <div class="container">
-        <h1>Email Verified Successfully</h1>
-        <p>Your email address has been successfully verified: ({{ email }})</p>
-        <p>You can now log in and access all features of our platform.</p>
+        <h1>{{ heading }}</h1>
+        <p>{{ message }}</p>
         <p>If you have any questions or need assistance, please feel free to contact us.</p>
         <p>Thank you!</p>
         <div class="footer">

@@ -20,15 +20,140 @@ parser_signin = reqparse.RequestParser()
 parser_signin.add_argument('email', help = 'This field cannot be blank', required = True)
 parser_signin.add_argument('password', help = 'This field cannot be blank', required = True)
 
+# Parser for incoming data for forgot password request
+parser_forgot_password = reqparse.RequestParser()
+parser_forgot_password.add_argument('email', help='This field cannot be blank', required=True)
+
+# Parser for incoming data for password reset request
+parser_reset_password = reqparse.RequestParser()
+parser_reset_password.add_argument('token', type=str, help='Token is required', required=True, location='form')
+parser_reset_password.add_argument('email', type=str, help='Email is required', required=True, location='form')
+parser_reset_password.add_argument('new_password', type=str, help='New password is required', required=True, location='form')
+
+class UserForgotPassword(Resource):
+    def post(self):
+        data = parser_forgot_password.parse_args()
+
+        if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', data['email']):
+            return {'message': 'Please enter a valid email'}
+
+        user = User.find_by_email(data['email'])
+        if not user:
+            return {'message': 'Email does not exist'}
+
+        try:
+            reset_token = serializer.dumps(data['email'], salt='forgot-password-salt')
+            reset_link = api.url_for(UserResetPasswordRequest, token=reset_token, _external=True)
+            message = Message(subject='Password Reset - 重置密码', recipients=[data['email']])
+            message.html = render_template('password_reset_request.html', reset_link=reset_link)
+            mail.send(message)
+            return {'message': 'Password reset instructions sent to your email'}, 200
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+        
+class UserResetPasswordRequest(Resource):
+    def get(self, token):
+        try:
+            email = serializer.loads(token, salt='forgot-password-salt', max_age=3600)  # Token valid for 1 hour
+        except SignatureExpired:
+            # render error page
+            error_content = render_template('error.html', title="Password Reset", heading="Password Reset Failed", message="The token has expired! Please request a new password reset link.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
+        except BadTimeSignature:
+            # render error page
+            error_content = render_template('error.html', title="Password Reset", heading="Password Reset Failed", message="The token is invalid! Please request a new password reset link.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
+        
+        html_content = render_template('password_reset_page.html', token=token, email=email)
+        # Create a response object with the correct Content-Type
+        response = make_response(html_content)
+        response.headers['Content-Type'] = 'text/html'
+        return response
+    
+class UserResetPassword(Resource):
+    def post(self):
+        data = parser_reset_password.parse_args()
+
+        # Verify the token
+        try:
+            email_from_token = serializer.loads(data['token'], salt='forgot-password-salt', max_age=3600)
+            if data['email'] != email_from_token:
+                # render error page
+                error_content = render_template('error.html', title="Password Reset", heading="Password Reset Failed", message="The token is invalid! Please request a new password reset link.")
+                # Create a response object with the correct Content-Type
+                err_res = make_response(error_content)
+                err_res.headers['Content-Type'] = 'text/html'
+                return err_res
+        except SignatureExpired:
+            # render error page
+            error_content = render_template('error.html', title="Password Reset", heading="Password Reset Failed", message="The token has expired! Please request a new password reset link.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
+        except BadTimeSignature:
+            # render error page
+            error_content = render_template('error.html', title="Password Reset", heading="Password Reset Failed", message="The token is invalid! Please request a new password reset link.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
+
+        # Find the user by email
+        user = User.find_by_email(data['email'])
+        if not user:
+            # render error page
+            error_content = render_template('error.html', title="Password Reset", heading="Password Reset Failed", message="User not found. Please refresh the page and try again.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
+        
+        # Update the user's password
+        user.password = User.generate_hash(data['new_password'])
+        try:
+            # save user to database
+            user.save_to_db()
+        except:
+            # render error page
+            error_content = render_template('error.html', title="Password Reset", heading="Password Reset Failed", message="Cannot update password now. Please try again later.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
+        
+        html_content = render_template('password_reset.html')
+        # Create a response object with the correct Content-Type
+        response = make_response(html_content)
+        response.headers['Content-Type'] = 'text/html'
+        return response
+
 # User click the verification link sent to their email, this endpoint will verify the email
 class UserVerifyEmail(Resource):
     def get(self, token):
         try:
             email = serializer.loads(token, salt='email-confirm-salt', max_age=3600)  # Token valid for 1 hour
         except SignatureExpired:
-            return {'message': 'The token has expired!'}, 400
+            # render error page
+            error_content = render_template('error.html', title="Email Verification", heading="Email Verification Failed", message="The token has expired! Please request a new email verification link.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
         except BadTimeSignature:
-            return {'message': 'The token is invalid!'}, 400
+            # render error page
+            error_content = render_template('error.html', title="Email Verification", heading="Email Verification Failed", message="The token is invalid! Please request a new email verification link.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
         
         user = User.find_by_email(email)
         if user:
@@ -43,7 +168,12 @@ class UserVerifyEmail(Resource):
             response.headers['Content-Type'] = 'text/html'
             return response
         except:
-            return {'message': 'Something went wrong'}, 500
+            # render error page
+            error_content = render_template('error.html', title="Email Verification", heading="Email Verification Failed", message="Cannot update verification now. Please try again later.")
+            # Create a response object with the correct Content-Type
+            err_res = make_response(error_content)
+            err_res.headers['Content-Type'] = 'text/html'
+            return err_res
 
 class UserSignUp(Resource):
     def post(self):
@@ -78,7 +208,7 @@ class UserSignUp(Resource):
                     'message': 'Verification email sent',
                     'username': user.username,
                     'email': user.email,
-                }
+                }, 200
             except:
                 return {'message': 'Something went wrong'}, 500
         else:
@@ -93,7 +223,7 @@ class UserSignUp(Resource):
                 # save user to database
                 new_user.save_to_db()
                 # send verification email
-                verification_link = url_for('verify_email', token=token, _external=True)
+                verification_link = api.url_for(UserVerifyEmail, token=token, _external=True)
                 message = Message(subject = 'Email Verification - 邮箱验证链接', recipients=[data['email']])
                 message.html = render_template('email_verification_request.html', verification_link=verification_link)
                 mail.send(message)
@@ -101,7 +231,7 @@ class UserSignUp(Resource):
                     'message': 'Verification email sent',
                     'username': new_user.username,
                     'email': new_user.email,
-                }
+                }, 200
             except:
                 return {'message': 'Something went wrong'}, 500
 
@@ -130,7 +260,7 @@ class UserSignIn(Resource):
             'refresh_token': refresh_token,
             'username': current_user.username,
             'email': current_user.email,
-        }
+        }, 200
       
 # refresh token endpoint to get a new access token
 class TokenRefresh(Resource):
@@ -138,7 +268,7 @@ class TokenRefresh(Resource):
     def post(self):
         current_user = get_jwt_identity()
         access_token = create_access_token(identity = current_user)
-        return {'access_token': access_token}
+        return {'access_token': access_token}, 200
       
       
 class AllUsers(Resource):

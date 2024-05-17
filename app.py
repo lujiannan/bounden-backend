@@ -52,6 +52,9 @@ jwt = JWTManager(app)
 import views, resources_user, resources_blog, resources_image
 
 api.add_resource(resources_user.UserVerifyEmail, '/verify_email/<string:token>')
+api.add_resource(resources_user.UserForgotPassword, '/forgot_password')
+api.add_resource(resources_user.UserResetPasswordRequest, '/reset_password_request/<string:token>')
+api.add_resource(resources_user.UserResetPassword, '/reset_password')
 api.add_resource(resources_user.UserSignUp, '/signup')
 api.add_resource(resources_user.UserSignIn, '/signin')
 api.add_resource(resources_user.TokenRefresh, '/token/refresh')
