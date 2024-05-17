@@ -40,6 +40,8 @@ class UserForgotPassword(Resource):
         user = User.find_by_email(data['email'])
         if not user:
             return {'message': 'Email does not exist'}
+        elif not user.verified:
+            return {'message': 'Email is not verified'}
 
         try:
             reset_token = serializer.dumps(data['email'], salt='forgot-password-salt')
