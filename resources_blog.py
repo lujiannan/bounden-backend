@@ -13,6 +13,10 @@ parser_create.add_argument('description', type=str, required=False)
 parser_create.add_argument('author_email', type=str, required=True, help='Author_email is required')
 parser_create.add_argument('content', type=str, required=True, help='Content is required')
 
+parser_all = reqparse.RequestParser()
+parser_all.add_argument('page', type=int, default=1)
+parser_all.add_argument('per_page', type=int, default=5)
+
 class BlogCreate(Resource):
     @jwt_required()
     def post(self):
@@ -63,8 +67,9 @@ class BlogUpdate(Resource):
             return {'message': 'Blog not found'}, 404
     
 class AllBlogs(Resource):
-    def get(self):
-        return Blog.return_all()
+    def post(self):
+        data = parser_all.parse_args()
+        return Blog.get_paginated_blogs(page=data['page'], per_page=data['per_page'])
     
     # comment this when using in production
     def delete(self):
