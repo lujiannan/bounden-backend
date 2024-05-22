@@ -12,6 +12,7 @@ parser_create.add_argument('title', type=str, required=True, help='Title is requ
 parser_create.add_argument('description', type=str, required=False)
 parser_create.add_argument('author_email', type=str, required=True, help='Author_email is required')
 parser_create.add_argument('content', type=str, required=True, help='Content is required')
+parser_create.add_argument('cover_image', type=str, default='')
 
 parser_all = reqparse.RequestParser()
 parser_all.add_argument('page', type=int, default=1)
@@ -36,7 +37,8 @@ class BlogCreate(Resource):
             created=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             updated=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             author=author_obj,
-            content=data['content']
+            content=data['content'],
+            cover_image=data['cover_image']
         )
 
         # save the new blog object to the database
@@ -64,6 +66,7 @@ class BlogUpdate(Resource):
             blog_obj.description = data['description']
             blog_obj.updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             blog_obj.content = data['content']
+            blog_obj.cover_image = data['cover_image']
 
             try:
                 blog_obj.save_to_db()

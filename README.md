@@ -31,7 +31,10 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - Check for upgrades ```sudo apt upgrade```
 - Create the python virtual environment ```python3 -m venv venv```
 - Activate the virtual environment ```source venv/bin/activate```
-- Install the required packages ```pip install -r requirements.txt```
+- Install the required packages ```pip install -r requirements.txt``` 
+- Set up the environment variables (through .env file)
+- Every time install/uninstall npm packages, run ```pip freeze > requirements.txt``` to update
+- Every time change flask sqlalchemy models, run ```flask db migrate``` and ```flask db upgrade```
 - (Dev) Initialize the flask database (first time) & run the server ```FLASK_APP=app.py FLASK_DEBUG=1 flask run``` or just ```flask run``` (on port 5000 by default)
 
 ## Dependencies

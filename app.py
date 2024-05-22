@@ -1,6 +1,7 @@
 import datetime
 import os
 from flask import Flask
+from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
@@ -35,6 +36,7 @@ serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 api = Api(app)
 mail = Mail(app)
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:3000", "https://*.bounden.cn"]}})
 
 @app.before_request

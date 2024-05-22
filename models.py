@@ -15,6 +15,7 @@ class Blog(db.Model):
     # when you are operating on the blog data, put param author='<user's name>', it would be automatically linked to users table and mapped to the author_id
     # if you want to know the author's fields (name, email, etc.), you can use the author.field_name
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    cover_image = db.Column(db.String(255), default='')
     content = db.Column(db.Text, nullable=False)
 
     def __repr__(self):
@@ -41,6 +42,7 @@ class Blog(db.Model):
                 'name': blog.author.username,
                 'email': blog.author.email,
             },
+            'cover_image': blog.cover_image,
             'content': blog.content,
         }
     
@@ -61,6 +63,7 @@ class Blog(db.Model):
                 'name': blog.author.username,
                 'email': blog.author.email,
             },
+            'cover_image': blog.cover_image,
             # content is not required for blog list (performance optimization)
         }
 
@@ -200,6 +203,7 @@ class User(db.Model):
                     'name': blog.author.username,
                     'email': blog.author.email,
                 },
+                'cover_image': blog.cover_image,
                 # content is not required for blog list (performance optimization)
             }
         
