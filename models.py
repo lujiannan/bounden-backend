@@ -69,15 +69,20 @@ class Blog(db.Model):
         return {'blogs': list(map(lambda blog: cls.__preview_to_json(blog), cls.query.all()))}
     
     @classmethod
-    def get_paginated_blogs(cls, page, per_page):
+    def get_paginated_blogs(cls, page, per_page, last_blog_updated_time):
         """
         Get blogs sorted by updated time with pagination.
+        (always use last_blog_updated_time to filter blogs, and return the first page with per_page blogs)
 
         :param page: The page number (1-indexed).
         :param per_page: Number of blogs per page.
+        :param last_blog_updated_time: The updated time of the last blog on the last page.
         :return: A dictionary with paginated blogs.
         """
-        paginated_blogs = cls.query.order_by(cls.updated.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        if last_blog_updated_time:
+            paginated_blogs = cls.query.filter(cls.updated < last_blog_updated_time).order_by(cls.updated.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        else:
+            paginated_blogs = cls.query.order_by(cls.updated.desc()).paginate(page=page, per_page=per_page, error_out=False)
         blogs = paginated_blogs.items
 
         return {
@@ -161,15 +166,20 @@ class User(db.Model):
             return {'message': 'Something went wrong'}
     
     # return all blogs of a specific user
-    def return_blogs(self, page, per_page):
+    def return_blogs(self, page, per_page, last_blog_updated_time):
         """
         Get blogs sorted by updated time with pagination.
+        (always use last_blog_updated_time to filter blogs, and return the first page with per_page blogs)
 
         :param page: The page number (1-indexed).
         :param per_page: Number of blogs per page.
+        :param last_blog_updated_time: The updated time of the last blog on the last page.
         :return: A dictionary with paginated blogs.
         """
-        paginated_blogs = Blog.query.filter_by(author_id = self.id).order_by(Blog.updated.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        if last_blog_updated_time:
+            paginated_blogs = Blog.query.filter_by(author_id = self.id).filter(Blog.updated < last_blog_updated_time).order_by(Blog.updated.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        else:
+            paginated_blogs = Blog.query.filter_by(author_id = self.id).order_by(Blog.updated.desc()).paginate(page=page, per_page=per_page, error_out=False)
         blogs = paginated_blogs.items
 
         # return all attributes of the blogs except content (performance optimization)

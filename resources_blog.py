@@ -16,6 +16,7 @@ parser_create.add_argument('content', type=str, required=True, help='Content is 
 parser_all = reqparse.RequestParser()
 parser_all.add_argument('page', type=int, default=1)
 parser_all.add_argument('per_page', type=int, default=5)
+parser_all.add_argument('last_blog_updated_time', type=str, default=None)
 
 class BlogCreate(Resource):
     @jwt_required()
@@ -69,7 +70,7 @@ class BlogUpdate(Resource):
 class AllBlogs(Resource):
     def post(self):
         data = parser_all.parse_args()
-        return Blog.get_paginated_blogs(page=data['page'], per_page=data['per_page'])
+        return Blog.get_paginated_blogs(page=data['page'], per_page=data['per_page'], last_blog_updated_time=data['last_blog_updated_time'])
     
     # comment this when using in production
     def delete(self):
