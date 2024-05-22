@@ -11,6 +11,9 @@ Blogs and Services (Webservice - Cross-End Support)
 - COS storage server (腾讯云COS is used in this project)
 - VS Code or any other code editor
 
+## Known Issues
+- If multiple users try to create/update blogs at the same time, the frontend blog list fetching and viewing may not work properly due to the blog list fetch API algorithm
+
 ## Project Start Guide
 ### Clone the repository
 ```
