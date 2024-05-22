@@ -33,6 +33,7 @@ parser_reset_password.add_argument('new_password', type=str, help='New password 
 parser_all_blogs = reqparse.RequestParser()
 parser_all_blogs.add_argument('page', type=int, default=1)
 parser_all_blogs.add_argument('per_page', type=int, default=5)
+parser_all_blogs.add_argument('last_blog_id', type=int, default=0)
 parser_all_blogs.add_argument('last_blog_updated_time', type=str, default=None)
 
 class UserForgotPassword(Resource):
@@ -291,4 +292,4 @@ class UserAllBlogs(Resource):
     @jwt_required()
     def post(self, email):
         data = parser_all_blogs.parse_args()
-        return User.find_by_email(email).return_blogs(page=data['page'], per_page=data['per_page'], last_blog_updated_time=data['last_blog_updated_time'])
+        return User.find_by_email(email).return_blogs(page=data['page'], per_page=data['per_page'], last_blog_id=data['last_blog_id'], last_blog_updated_time=data['last_blog_updated_time'])
