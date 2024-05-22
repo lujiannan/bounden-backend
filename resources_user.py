@@ -291,5 +291,7 @@ class AllUsers(Resource):
 class UserAllBlogs(Resource):
     @jwt_required()
     def post(self, email):
+        if get_jwt_identity() != email:
+            return {'message': 'You are not authorized'}, 401
         data = parser_all_blogs.parse_args()
         return User.find_by_email(email).return_blogs(page=data['page'], per_page=data['per_page'], last_blog_id=data['last_blog_id'], last_blog_updated_time=data['last_blog_updated_time'])

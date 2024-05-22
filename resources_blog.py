@@ -2,7 +2,7 @@ import datetime
 from models import User, Blog
 from flask_restful import Resource, reqparse
 # Access token we need to access protected routes. Refresh token we need to reissue access token when it will expire.
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # add parsing of incoming data inside the POST request
 # required fields are marked as required=True
@@ -23,6 +23,9 @@ class BlogCreate(Resource):
     @jwt_required()
     def post(self):
         data = parser_create.parse_args()
+
+        if get_jwt_identity() != data['author_email']:
+            return {'message': 'You are not authorized'}, 401
 
         author_obj = User.find_by_email(data['author_email'])
         # create a new blog object with the data from the request
@@ -49,6 +52,10 @@ class BlogUpdate(Resource):
     @jwt_required()
     def post(self, id):
         data = parser_create.parse_args()
+
+        if get_jwt_identity() != data['author_email']:
+            return {'message': 'You are not authorized'}, 401
+
         blog_obj = Blog.find_by_id(id)
 
         if blog_obj:
@@ -83,4 +90,7 @@ class BlogWithId(Resource):
 
     @jwt_required()
     def delete(self, id):
+        email = Blog.find_by_id(id).author.email
+        if email != get_jwt_identity():
+            return {'message': 'You are not authorized'}, 401
         return Blog.delete_by_id(id)

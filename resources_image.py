@@ -74,6 +74,10 @@ class ImageUpload(Resource):
     @jwt_required()
     def post(self):
         data = parser_upload.parse_args()
+
+        if get_jwt_identity() != data['user_email']:
+            return {'message': 'You are not authorized'}, 401
+        
         # print(adjustImageSize(data.file.stream.read()))
         response = client.put_object(
             Bucket=bucket,
