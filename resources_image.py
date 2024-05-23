@@ -81,7 +81,7 @@ class ImageUpload(Resource):
         # print(adjustImageSize(data.file.stream.read()))
         response = client.put_object(
             Bucket=bucket,
-            Body=adjustImageSize(data.file.stream.read()),
+            Body=data.file.stream.read(),
             Key='blog-images/' + data.user_email + '/' + data.name,
             StorageClass='STANDARD',
             EnableMD5=False
