@@ -38,47 +38,6 @@ parser_upload.add_argument('user_email', type=str, help = 'This field cannot be 
 parser_upload.add_argument('name', type=str, help = 'This field cannot be blank', required = True, location = 'form')
 parser_upload.add_argument('file', type=FileStorage, help = 'This field cannot be blank', required = True, location = 'files')
 
-# adjust image size to 720p if it's larger than 720p
-def adjustImageSize(file_bin):
-    logging.info("Start image resizing")
-
-    # Convert byte data to numpy array
-    nparr = np.frombuffer(file_bin, np.uint8)
-    
-    # Decode image
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    
-    # Get original image dimensions
-    height, width = img.shape[:2]
-
-    if height <= 760 or width <= 760:
-        return file_bin
-    
-    # Calculate aspect ratio
-    aspect_ratio = width / height
-    
-    # Define target width and height for 720p
-    if height <= width:
-        target_height = 760
-        target_width = int(target_height * aspect_ratio)
-    else:
-        target_width = 760
-        target_height = int(target_width / aspect_ratio)
-    
-    # Resize image while maintaining aspect ratio
-    resized_img = cv2.resize(img, (target_width, target_height))
-    
-    # Encode resized image to byte data
-    _, buffer = cv2.imencode('.jpg', resized_img)
-    
-    # Convert byte buffer to bytes
-    resized_bytes = BytesIO(buffer).read()
-
-    logging.info("Finish image resizing")
-    
-    return resized_bytes
-
-
 class ImageUpload(Resource):
     @jwt_required()
     def post(self):
