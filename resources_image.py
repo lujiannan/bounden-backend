@@ -12,11 +12,6 @@ import sys
 import os
 import logging
 
-# for image processing
-from io import BytesIO
-import numpy as np
-import cv2
-
 # 正常情况日志级别使用 INFO，需要定位时可以修改为 DEBUG，此时 SDK 会打印和服务端的通信信息
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
