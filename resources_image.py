@@ -1,3 +1,4 @@
+import datetime
 from models import Image, Blog, User
 from flask_restful import Resource, reqparse
 from werkzeug.datastructures import FileStorage
@@ -39,6 +40,8 @@ parser_upload.add_argument('file', type=FileStorage, help = 'This field cannot b
 
 # adjust image size to 720p if it's larger than 720p
 def adjustImageSize(file_bin):
+    logging.info("Start image resizing")
+
     # Convert byte data to numpy array
     nparr = np.frombuffer(file_bin, np.uint8)
     
@@ -48,15 +51,19 @@ def adjustImageSize(file_bin):
     # Get original image dimensions
     height, width = img.shape[:2]
 
-    if height <= 760:
+    if height <= 760 or width <= 760:
         return file_bin
     
     # Calculate aspect ratio
     aspect_ratio = width / height
     
     # Define target width and height for 720p
-    target_height = 760
-    target_width = int(target_height * aspect_ratio)
+    if height <= width:
+        target_height = 760
+        target_width = int(target_height * aspect_ratio)
+    else:
+        target_width = 760
+        target_height = int(target_width / aspect_ratio)
     
     # Resize image while maintaining aspect ratio
     resized_img = cv2.resize(img, (target_width, target_height))
@@ -66,6 +73,8 @@ def adjustImageSize(file_bin):
     
     # Convert byte buffer to bytes
     resized_bytes = BytesIO(buffer).read()
+
+    logging.info("Finish image resizing")
     
     return resized_bytes
 
@@ -78,11 +87,10 @@ class ImageUpload(Resource):
         if get_jwt_identity() != data['user_email']:
             return {'message': 'You are not authorized'}, 401
         
-        # print(adjustImageSize(data.file.stream.read()))
         response = client.put_object(
             Bucket=bucket,
             Body=data.file.stream.read(),
-            Key='blog-images/' + data.user_email + '/' + data.name,
+            Key='blog-images/' + data.user_email + '/' + datetime.datetime.now().strftime('%Y%m%d_') + data.name,
             StorageClass='STANDARD',
             EnableMD5=False
         )
@@ -96,14 +104,14 @@ class ImageUpload(Resource):
             new_image = Image(
                 name = data.name,
                 user = author_obj,
-                image_url = 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
+                image_url = 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + datetime.datetime.now().strftime('%Y%m%d_') + data.name,
             )
             # save the new blog object to the database
             try:
                 new_image.save_to_db()
                 return {
                     'message': 'Image uploaded successfully',
-                    'url': 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
+                    'url': 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + datetime.datetime.now().strftime('%Y%m%d_') + data.name,
                 }
             except:
                 return {'message': 'Something went wrong'}, 500

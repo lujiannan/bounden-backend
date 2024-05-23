@@ -41,13 +41,13 @@ git clone https://github.com/lujiannan/bounden-backend.git
 - The whole website is built using React as frontend and Flask + Python as backend
 - flask_sqlalchemy is used for the database storage
 - react-auth-kit and jwt_extended are used for user authentication and token refreshing
-- Quill is used for the blog creater/editor
+- Tiptap is used for the blog creater/editor
 - Render is used for the deployment and hosting of the website
 - Gunicorn is used for the production server
 
 ## Deployment - [Render](https://docs.render.com/github)
 - ATTENTION: Free - only for test purpose (if you want to push database back to github, fee applies)
-- The api website is hosted on a custom domain on Render [Provided URL](https://bounden-api.onrender.com/) (will not work with direct access)
+- The api website is hosted on a custom domain on Render [Provided URL](https://api.bounden.cn/) (will not work with direct access)
 - Follow the instructions on the Render website to link to the github account
 - Create a new site, link to the backend repo on github, set name (the prefix of the provided URL), and other details
 - set environment variables on the site (based on the .env file)
@@ -95,23 +95,25 @@ WantedBy=multi-user.target
 ```
 server {
         listen 80;
-        server_name <configured-domain-for-backend-api>;
+        client_max_body_size 100M;
+        server_name <configured-domain-or-ip-for-server>;
 
         location / {
-                include proxy_params;
+                include /etc/nginx/proxy_params;
                 proxy_pass http://localhost:5000;
         }
 }
 ```
-- Link the file to the sites-enabled dir ```sudo ln -s /etc/nginx/sites-available/<project-name> /etc/nginx/sites-enabled```
+- Link the file to the sites-enabled dir ```sudo ln -s /etc/nginx/sites-available/<project-name> /etc/nginx/sites-enabled/``` (If sites-enabled already exists, ```sudo rm /etc/nginx/sites-enabled/<project-name>```)
 - Test for syntax error ```sudo nginx -t```
 - Restart the Nginx process for new config ```sudo systemctl restart nginx```
-- adjust the firewall ```sudo ufw delete allow 5000 && sudo ufw allow 'Nginx Full'```
+- adjust the firewall ```sudo ufw delete allow 5000 && sudo ufw allow 'Nginx HTTP'``` (firewall status ```ufw status```)
 - Now navigation to domain on the browser is available ```http://<configured-domain-for-backend-api>:5000```
+- Check Nginx staus ```systemctl status nginx```
 ### Continue on [securing the application to https:// with Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04#step-5-configuring-nginx-to-proxy-requests)
 - Install Certbot's Nginx package ```sudo apt install python3-certbot-nginx```
 - Use the plugin ```sudo certbot --nginx -d <configured-domain-for-backend-api>```
-- HTTP is no longer required ```sudo ufw delete allow 'Nginx HTTP'```
+- HTTP is no longer required ```sudo ufw delete allow 'Nginx HTTP' && sudo ufw allow 'Nginx FULL'```
 
 ## Support
 This is an open source project and everyone is welcome to contribute. Feel free to open an issue, if you have any questions or incase you find a bug. Also if you are impressed/inspired by this project, a little credit will be much appreciated.
