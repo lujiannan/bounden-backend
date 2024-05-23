@@ -1,3 +1,4 @@
+import datetime
 from models import Image, Blog, User
 from flask_restful import Resource, reqparse
 from werkzeug.datastructures import FileStorage
@@ -48,15 +49,19 @@ def adjustImageSize(file_bin):
     # Get original image dimensions
     height, width = img.shape[:2]
 
-    if height <= 760:
+    if height <= 760 or width <= 760:
         return file_bin
     
     # Calculate aspect ratio
     aspect_ratio = width / height
     
     # Define target width and height for 720p
-    target_height = 760
-    target_width = int(target_height * aspect_ratio)
+    if height <= width:
+        target_height = 760
+        target_width = int(target_height * aspect_ratio)
+    else:
+        target_width = 760
+        target_height = int(target_width / aspect_ratio)
     
     # Resize image while maintaining aspect ratio
     resized_img = cv2.resize(img, (target_width, target_height))
@@ -82,7 +87,7 @@ class ImageUpload(Resource):
         response = client.put_object(
             Bucket=bucket,
             Body=adjustImageSize(data.file.stream.read()),
-            Key='blog-images/' + data.user_email + '/' + data.name,
+            Key='blog-images/' + data.user_email + '/' + datetime.datetime.now().strftime('%Y%m%d_') + data.name,
             StorageClass='STANDARD',
             EnableMD5=False
         )
@@ -96,14 +101,14 @@ class ImageUpload(Resource):
             new_image = Image(
                 name = data.name,
                 user = author_obj,
-                image_url = 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
+                image_url = 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + datetime.datetime.now().strftime('%Y%m%d_') + data.name,
             )
             # save the new blog object to the database
             try:
                 new_image.save_to_db()
                 return {
                     'message': 'Image uploaded successfully',
-                    'url': 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + data.name,
+                    'url': 'https://' + bucket + '.cos.' + region + '.myqcloud.com/blog-images/' + data.user_email + '/' + datetime.datetime.now().strftime('%Y%m%d_') + data.name,
                 }
             except:
                 return {'message': 'Something went wrong'}, 500
