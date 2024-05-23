@@ -40,6 +40,8 @@ parser_upload.add_argument('file', type=FileStorage, help = 'This field cannot b
 
 # adjust image size to 720p if it's larger than 720p
 def adjustImageSize(file_bin):
+    logging.info("Start image resizing")
+
     # Convert byte data to numpy array
     nparr = np.frombuffer(file_bin, np.uint8)
     
@@ -71,6 +73,8 @@ def adjustImageSize(file_bin):
     
     # Convert byte buffer to bytes
     resized_bytes = BytesIO(buffer).read()
+
+    logging.info("Finish image resizing")
     
     return resized_bytes
 
@@ -83,7 +87,6 @@ class ImageUpload(Resource):
         if get_jwt_identity() != data['user_email']:
             return {'message': 'You are not authorized'}, 401
         
-        # print(adjustImageSize(data.file.stream.read()))
         response = client.put_object(
             Bucket=bucket,
             Body=adjustImageSize(data.file.stream.read()),
