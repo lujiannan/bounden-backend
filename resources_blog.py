@@ -1,5 +1,5 @@
 import datetime
-from models import User, Blog
+from models import User, Blog, Comment
 from flask_restful import Resource, reqparse
 # Access token we need to access protected routes. Refresh token we need to reissue access token when it will expire.
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -19,6 +19,12 @@ parser_all.add_argument('page', type=int, default=1)
 parser_all.add_argument('per_page', type=int, default=5)
 parser_all.add_argument('last_blog_id', type=int, default=0)
 parser_all.add_argument('last_blog_updated_time', type=str, default=None)
+
+parser_comment_create = reqparse.RequestParser()
+parser_comment_create.add_argument('name', type=str, required=True, help='Name is required')
+parser_comment_create.add_argument('email', type=str, required=True, help='Email is required')
+parser_comment_create.add_argument('parent_id', type=int, default=0)
+parser_comment_create.add_argument('content', type=str, required=True, help='Content is required')
 
 class BlogCreate(Resource):
     @jwt_required()
@@ -97,3 +103,46 @@ class BlogWithId(Resource):
         if email != get_jwt_identity():
             return {'message': 'You are not authorized'}, 401
         return Blog.delete_by_id(id)
+    
+class CommentPost(Resource):
+    def post(self, id):
+        data = parser_comment_create.parse_args()
+
+        blog_obj = Blog.find_by_id(id)
+
+        parent_comment = None
+        if data['parent_id']:
+            parent_comment = Comment.find_by_id(data['parent_id'])
+            if not parent_comment:
+                return {'message': 'Parent comment not found'}, 404
+
+        new_comment = Comment(
+            blog=blog_obj,
+            parent=parent_comment,
+            name=data['name'],
+            email=data['email'],
+            content=data['content'],
+            created=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        )
+
+        # save the new comment object to the database
+        try:
+            new_comment.save_to_db()
+            return {
+                'message': 'Comment created successfully',
+            }
+        except:
+            return {'message': 'Something went wrong'}, 500
+
+class AllComments(Resource):
+    def get(self, id):
+        return Blog.get_comments(id)
+    
+class CommentReplies(Resource):
+    def get(self, id, commentId):
+        comment = Comment.find_by_id(commentId)
+        if comment:
+            commentPath = comment.path
+            return Blog.get_comment_replies(id, commentPath)
+        else:
+            return {'message': 'Comment not found'}, 404

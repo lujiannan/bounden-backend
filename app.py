@@ -36,7 +36,7 @@ serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 api = Api(app)
 mail = Mail(app)
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, render_as_batch=True)
 CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:3000", "https://*.bounden.cn"]}})
 
 @app.before_request
@@ -67,5 +67,8 @@ api.add_resource(resources_blog.BlogCreate, '/blogs/create')
 api.add_resource(resources_blog.BlogUpdate, '/blogs/edit/<int:id>')
 api.add_resource(resources_blog.AllBlogs, '/blogs')
 api.add_resource(resources_blog.BlogWithId, '/blogs/<int:id>')
+api.add_resource(resources_blog.CommentPost, '/blogs/<int:id>/comments/create')
+api.add_resource(resources_blog.AllComments, '/blogs/<int:id>/comments')
+api.add_resource(resources_blog.CommentReplies, '/blogs/<int:id>/comments/<int:commentId>/replies')
 
 api.add_resource(resources_image.ImageUpload, '/images/upload')

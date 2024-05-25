@@ -1,5 +1,6 @@
 from app import db
 from passlib.hash import pbkdf2_sha256 as sha256
+from sqlalchemy import func
 
 # Define the Blog model
 class Blog(db.Model):
@@ -17,9 +18,8 @@ class Blog(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     cover_image = db.Column(db.String(255), default='')
     content = db.Column(db.Text, nullable=False)
-
-    def __repr__(self):
-        return f"<Blog {self.title}>"
+    # Define a relationship with the Comment table and create a new column blog as backref
+    comments = db.relationship('Comment', backref='blog')
     
     def save_to_db(self):
         db.session.add(self)
@@ -119,11 +119,30 @@ class Blog(db.Model):
     @classmethod
     def delete_by_id(cls, id):
         try:
-            num_rows_deleted = db.session.query(cls).filter_by(id = id).delete()
+            num_rows_deleted = cls.query(cls).filter_by(id = id).delete()
             db.session.commit()
             return {'message': f'{num_rows_deleted} row(s) deleted'}
         except:
             return {'message': 'Something went wrong'}
+        
+    # Function to count the number of parts in a split string by '.'
+    @classmethod
+    def _count_parts(cls, column, delimiter='.'):
+        return func.length(column) - func.length(func.replace(column, delimiter, '')) + 1
+    
+    @classmethod
+    def get_comments(cls, blogId):
+        # Filter comments with len(comment['path'].split('.')) == 1
+        comments = Comment.query.filter(Comment.blog_id == blogId).filter(cls._count_parts(Comment.path) == 1).order_by(Comment.id.desc()).all()
+        # filtered_comments = [comment for comment in comments if len(comment.path.split('.')) == 1]
+        return {'comments': list(map(lambda comment: comment.to_json(), comments))}
+    
+    @classmethod
+    def get_comment_replies(cls, blogId, commentPath):
+        # filter replies for a specific comment under blogId, and order them by their path and id in ascending order
+        replies = Comment.query.filter(Comment.blog_id == blogId).filter(Comment.path.startswith(commentPath)).filter(cls._count_parts(Comment.path) > 1).order_by(Comment.path, Comment.id).all()
+        return {'replies': list(map(lambda reply: reply.to_json(), replies))}
+
     
 # Define the Author model
 class User(db.Model):
@@ -137,9 +156,6 @@ class User(db.Model):
     # Define a relationship with the Blog table and create a new column author as backref
     blogs = db.relationship('Blog', backref='author')
     images = db.relationship('Image', backref='user')
-
-    def __repr__(self):
-        return f"<User {self.email}>"
     
     def save_to_db(self):
         db.session.add(self)
@@ -254,3 +270,64 @@ class Image(db.Model):
     @classmethod
     def return_all(cls):
         return {'images': list(map(lambda image: cls.__to_json(image), cls.query.all()))}
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+
+    # support up to 10^6 comments per blog
+    _N = 6
+
+    id = db.Column(db.Integer, primary_key=True)
+    # foregin key to the blog table (lower case table name 'blogs')
+    blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created = db.Column(db.String(10), nullable=False, index=True)
+    path = db.Column(db.Text, index=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('comments.id'))
+    replies = db.relationship(
+        'Comment', backref=db.backref('parent', remote_side=[id]),
+        lazy='dynamic')
+    
+    def to_json(self):
+        return {
+            'id': self.id,
+            'blog_id': self.blog_id,
+            'name': self.name,
+            'email': self.email,
+            'content': self.content,
+            'created': self.created,
+            'path': self.path,
+            'level': self.level(),
+            'parent_id': self.parent_id,
+            'parent_name': self.parent.name if self.parent else None,
+            'replyNum': self.replies.count(),
+        }
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+        if not self.path:
+            prefix = self.parent.path + '.' if self.parent else ''
+            self.path = prefix + '{:0{}d}'.format(self.id, self._N)
+            db.session.commit()
+
+    def level(self):
+        if self.path:
+            # level starts from 1, which represents the indentation of the comment
+            return len(self.path.split('.'))
+        return None
+
+    @classmethod
+    def find_by_id(cls, id):
+        return cls.query.filter_by(id=id).first()
+    
+    @classmethod
+    def delete_by_id(cls, id):
+        try:
+            num_rows_deleted = cls.query.filter_by(id=id).delete()
+            db.session.commit()
+            return {'message': f'{num_rows_deleted} row(s) deleted'}
+        except:
+            return {'message': 'Something went wrong'}
