@@ -302,7 +302,7 @@ class Comment(db.Model):
             'level': self.level(),
             'parent_id': self.parent_id,
             'parent_name': self.parent.name if self.parent else None,
-            'replyNum': self.replies.count(),
+            'replyNum': self.get_comment_replies_num(),
         }
 
     def save_to_db(self):
@@ -318,6 +318,9 @@ class Comment(db.Model):
             # level starts from 1, which represents the indentation of the comment
             return len(self.path.split('.'))
         return None
+
+    def get_comment_replies_num(self):
+        return Comment.query.filter(Comment.path.startswith(self.path + '.')).count()
 
     @classmethod
     def find_by_id(cls, id):
