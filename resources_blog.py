@@ -89,10 +89,6 @@ class AllBlogs(Resource):
         data = parser_all.parse_args()
         return Blog.get_paginated_blogs(page=data['page'], per_page=data['per_page'], last_blog_id=data['last_blog_id'], last_blog_updated_time=data['last_blog_updated_time'])
     
-    # comment this when using in production
-    def delete(self):
-        return Blog.delete_all()
-    
 class BlogWithId(Resource):
     def get(self, id):
         return Blog.find_by_id(id, requireJson=True)
@@ -130,6 +126,19 @@ class CommentPost(Resource):
             new_comment.save_to_db()
             return {
                 'message': 'Comment created successfully',
+            }
+        except:
+            return {'message': 'Something went wrong'}, 500
+        
+class CommentWithId(Resource):
+    def delete(self, id, commentId):
+        comment_obj = Comment.find_by_id(commentId)
+        if not comment_obj:
+            return {'message': 'Comment not found'}, 404
+        try:
+            Comment.delete_by_path(comment_obj.path)
+            return {
+                'message': 'Comment deleted successfully',
             }
         except:
             return {'message': 'Something went wrong'}, 500

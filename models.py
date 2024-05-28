@@ -119,7 +119,8 @@ class Blog(db.Model):
     @classmethod
     def delete_by_id(cls, id):
         try:
-            num_rows_deleted = cls.query(cls).filter_by(id = id).delete()
+            num_rows_deleted = cls.query.filter_by(id = id).delete()
+            Comment.query.filter_by(blog_id = id).delete()
             db.session.commit()
             return {'message': f'{num_rows_deleted} row(s) deleted'}
         except:
@@ -274,8 +275,8 @@ class Image(db.Model):
 class Comment(db.Model):
     __tablename__ = 'comments'
 
-    # support up to 10^6 comments per blog
-    _N = 6
+    # support up to 10^8 comments per blog
+    _N = 8
 
     id = db.Column(db.Integer, primary_key=True)
     # foregin key to the blog table (lower case table name 'blogs')
@@ -327,9 +328,9 @@ class Comment(db.Model):
         return cls.query.filter_by(id=id).first()
     
     @classmethod
-    def delete_by_id(cls, id):
+    def delete_by_path(cls, commentPath):
         try:
-            num_rows_deleted = cls.query.filter_by(id=id).delete()
+            num_rows_deleted = cls.query.filter(Comment.path.startswith(commentPath)).delete()
             db.session.commit()
             return {'message': f'{num_rows_deleted} row(s) deleted'}
         except:

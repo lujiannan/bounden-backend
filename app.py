@@ -68,6 +68,7 @@ api.add_resource(resources_blog.BlogUpdate, '/blogs/edit/<int:id>')
 api.add_resource(resources_blog.AllBlogs, '/blogs')
 api.add_resource(resources_blog.BlogWithId, '/blogs/<int:id>')
 api.add_resource(resources_blog.CommentPost, '/blogs/<int:id>/comments/create')
+api.add_resource(resources_blog.CommentWithId, '/blogs/<int:id>/comments/<int:commentId>')
 api.add_resource(resources_blog.AllComments, '/blogs/<int:id>/comments')
 api.add_resource(resources_blog.CommentReplies, '/blogs/<int:id>/comments/<int:commentId>/replies')
 
