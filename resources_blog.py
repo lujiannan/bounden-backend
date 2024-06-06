@@ -52,6 +52,7 @@ class BlogCreate(Resource):
             new_blog.save_to_db()
             return {
                 'message': 'Blog {} created successfully'.format( data['title']),
+                'blog': Blog.preview_to_json(new_blog),
             }
         except:
             return {'message': 'Something went wrong'}, 500

@@ -48,7 +48,7 @@ class Blog(db.Model):
     
     # private to_json method to convert the blog object to a json format
     @classmethod
-    def __preview_to_json(cls, blog):
+    def preview_to_json(cls, blog):
         return {
             'id': blog.id,
             'attributes': {
@@ -69,7 +69,7 @@ class Blog(db.Model):
 
     @classmethod
     def return_all(cls):
-        return {'blogs': list(map(lambda blog: cls.__preview_to_json(blog), cls.query.all()))}
+        return {'blogs': list(map(lambda blog: cls.preview_to_json(blog), cls.query.all()))}
     
     @classmethod
     def get_paginated_blogs(cls, page, per_page, last_blog_id, last_blog_updated_time):
@@ -90,7 +90,7 @@ class Blog(db.Model):
         blogs = paginated_blogs.items
 
         return {
-            'blogs': list(map(lambda blog: cls.__preview_to_json(blog), blogs)),
+            'blogs': list(map(lambda blog: cls.preview_to_json(blog), blogs)),
             'total': paginated_blogs.total,
             'pages': paginated_blogs.pages,
             'current_page': paginated_blogs.page,
