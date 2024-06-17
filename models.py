@@ -157,6 +157,7 @@ class User(db.Model):
     # Define a relationship with the Blog table and create a new column author as backref
     blogs = db.relationship('Blog', backref='author')
     images = db.relationship('Image', backref='user')
+    memoryMapMarker = db.relationship('MemoryMapMarker', backref='user')
     
     def save_to_db(self):
         db.session.add(self)
@@ -335,3 +336,46 @@ class Comment(db.Model):
             return {'message': f'{num_rows_deleted} row(s) deleted'}
         except:
             return {'message': 'Something went wrong'}
+        
+class MemoryMapMarker(db.Model):
+    __tablename__ = 'memory_map_markers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    longitude = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    images = db.Column(db.Text)
+    created = db.Column(db.String(10), nullable=False)
+    updated = db.Column(db.String(10))
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def to_json(cls, marker):
+        return {
+            'id': marker.id,
+            'name': marker.name,
+            'description': marker.description,
+            'longitude': marker.longitude,
+            'latitude': marker.latitude,
+            'images': marker.images,
+            'created': marker.created,
+            'updated': marker.updated,
+            'user': {
+                'id': marker.user.id,
+                'username': marker.user.username,
+                'email': marker.user.email,
+            }
+        }
+    
+    @classmethod
+    def find_by_id(cls, id):
+        return cls.query.filter_by(id=id).first()
+
+    @classmethod
+    def return_all_with_user_id(cls, user_id):
+        return {'markers': list(map(lambda marker: cls.to_json(marker), cls.query.filter_by(user_id=user_id).all()))}

@@ -2,7 +2,7 @@ import datetime
 from models import User, Blog, Comment
 from flask_restful import Resource, reqparse
 # Access token we need to access protected routes. Refresh token we need to reissue access token when it will expire.
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import (jwt_required, get_jwt_identity)
 
 # add parsing of incoming data inside the POST request
 # required fields are marked as required=True

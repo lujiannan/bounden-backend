@@ -51,7 +51,7 @@ def create_tables():
 jwt = JWTManager(app)
 
 
-import views, resources_user, resources_blog, resources_image
+import views, resources_user, resources_blog, resources_image, resources_memoryMapMarker
 
 api.add_resource(resources_user.UserVerifyEmail, '/verify_email/<string:token>')
 api.add_resource(resources_user.UserForgotPassword, '/forgot_password')
@@ -73,3 +73,7 @@ api.add_resource(resources_blog.AllComments, '/blogs/<int:id>/comments')
 api.add_resource(resources_blog.CommentReplies, '/blogs/<int:id>/comments/<int:commentId>/replies')
 
 api.add_resource(resources_image.ImageUpload, '/images/upload')
+
+api.add_resource(resources_memoryMapMarker.MemoryMapMarkerCreate, '/memory_map_markers/create')
+api.add_resource(resources_memoryMapMarker.MemoryMapMarkerUpdate, '/memory_map_markers/edit')
+api.add_resource(resources_memoryMapMarker.MemoryMapMarkerList, '/memory_map_markers/<string:user_email>')
