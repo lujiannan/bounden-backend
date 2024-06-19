@@ -335,7 +335,7 @@ class Comment(db.Model):
             db.session.commit()
             return {'message': f'{num_rows_deleted} row(s) deleted'}
         except:
-            return {'message': 'Something went wrong'}
+            return {'message': 'Something went wrong'}, 500
         
 class MemoryMapMarker(db.Model):
     __tablename__ = 'memory_map_markers'
@@ -375,6 +375,18 @@ class MemoryMapMarker(db.Model):
     @classmethod
     def find_by_id(cls, id):
         return cls.query.filter_by(id=id).first()
+    
+    @classmethod
+    def delete_by_id(cls, id):
+        try:
+            num_rows_deleted = cls.query.filter_by(id=id).delete()
+            db.session.commit()
+            return {
+                'message': f'{num_rows_deleted} row(s) deleted',
+                'id': id,
+            }
+        except:
+            return {'message': 'Something went wrong'}, 500
 
     @classmethod
     def return_all_with_user_id(cls, user_id):

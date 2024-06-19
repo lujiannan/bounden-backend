@@ -17,6 +17,10 @@ parser_update.add_argument('latitude', type=float, required=True, help='Latitude
 parser_update.add_argument('longitude', type=float, required=True, help='Longitude is required')
 parser_update.add_argument('images', type=str)
 
+parser_delete = reqparse.RequestParser()
+parser_delete.add_argument('user_email', type=str, required=True, help='User email is required')
+parser_delete.add_argument('id', type=int, required=True, help='Marker id is required')
+
 class MemoryMapMarkerCreate(Resource):
     @jwt_required()
     def post(self):
@@ -76,6 +80,17 @@ class MemoryMapMarkerUpdate(Resource):
                 return {'message': 'Something went wrong'}, 500
         else:
             return {'message': 'Marker not found'}, 404
+        
+class MemoryMapMarkerDelete(Resource):
+    @jwt_required()
+    def delete(self):
+        data = parser_delete.parse_args()
+
+        if get_jwt_identity() != data['user_email']:
+            return {'message': 'You are not authorized'}, 401
+        
+        return MemoryMapMarker.delete_by_id(data['id'])
+
         
 class MemoryMapMarkerList(Resource):
     @jwt_required()
